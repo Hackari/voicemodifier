@@ -53,7 +53,7 @@ body {
 }
 .scroll-prompt { font-weight: bold; color: var(--accent); margin-top: 2rem; }
 
-.info-panel { background-color: transparent; max-width: 700px; text-align: left; }
+.info-panel { background-color: transparent; max-width: 760px; text-align: left; }
 .info-panel h2 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent); }
 .info-panel p  { font-size: 1.25rem; color: var(--text-color); }
 h1 { font-size: 4rem; margin-bottom: 1rem; }
@@ -115,32 +115,25 @@ button:active { transform: scale(0.95); }
 /* PHASE VOCODER                                                 */
 /* ============================================================ */
 
-.pv-info-panel { max-width: 740px; }
+.pv-info-panel { max-width: 800px; }
 .pv-info-panel h2 { color: var(--pv-accent); }
 
-.pv-pipeline {
-    background: #0f0f11; border-radius: 14px; padding: 1.25rem 1.25rem 1rem;
-    margin: 1.5rem 0; overflow-x: auto; border: 1px solid #27272a;
-    box-shadow: inset 0 2px 12px rgba(0,0,0,0.6), 0 4px 20px rgba(0,0,0,0.15);
-}
-.pv-pipeline-svg { min-width: 560px; width: 100%; height: auto; display: block; }
-
-/* Step cards — horizontal flex layout */
+/* Step cards — side-by-side graphic + text */
 .pv-steps { display: flex; flex-direction: column; gap: 1.25rem; margin: 1.5rem 0 0; text-align: left; }
 
 .pv-step {
     display: flex;
     align-items: flex-start;
-    gap: 1.25rem;
+    gap: 1.5rem;
     background: white;
     border: 1px solid #e4e4e7;
     border-left: 4px solid var(--pv-accent);
     border-radius: 0 12px 12px 0;
-    padding: 1.1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
 }
 
 .pv-step-graphic {
-    flex: 0 0 240px;  /* fixed 240px for the SVG diagram */
+    flex: 0 0 250px;
     align-self: flex-start;
 }
 
@@ -155,23 +148,31 @@ button:active { transform: scale(0.95); }
 .pv-step-text { flex: 1; min-width: 0; }
 
 .pv-step-text h4 {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.6rem 0;
     color: var(--pv-accent);
     font-size: 1.05rem;
     font-weight: 700;
 }
 .pv-step-text p {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.55rem 0;
     font-size: 0.88rem;
-    line-height: 1.6;
+    line-height: 1.65;
     color: #52525b;
 }
 .pv-step-text p:last-child { margin-bottom: 0; }
 .pv-step-text strong { color: var(--text-color); }
 .pv-step-text em { color: var(--pv-accent); font-style: normal; font-weight: 600; }
+.pv-step-text code {
+    font-family: monospace;
+    background: #f4f4f5;
+    padding: 0.05em 0.35em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #7c3aed;
+}
 
 /* Stack vertically on narrow screens */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     .pv-step { flex-direction: column; }
     .pv-step-graphic { flex: 0 0 auto; width: 100%; }
 }
@@ -186,5 +187,61 @@ button:active { transform: scale(0.95); }
 .processing-spin { display: inline-block; animation: spin 1s linear infinite; font-size: 1.1rem; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* Section 3 widget subtle purple top border */
+/* Section 3 widget */
 #section-3 .widget-box { border-top: 4px solid var(--pv-accent); }
+
+/* ============================================================ */
+/* SKIP BANNER                                                   */
+/* ============================================================ */
+
+.skip-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0.9rem 1.4rem;
+    background: #f4f4f5;
+    border: 1.5px solid #e4e4e7;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.skip-banner span {
+    font-size: 0.95rem;
+    color: var(--inactive-text);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.skip-btn {
+    flex-shrink: 0;
+    background: var(--text-color);
+    color: #fff;
+    font-size: 0.9rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: 50px;
+    border: none;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.skip-btn:hover  { background: #3f3f46; }
+.skip-btn:active { transform: scale(0.97); }
+
+/* ============================================================ */
+/* FOOTER                                                       */
+/* ============================================================ */
+
+.site-footer {
+    background-color: #18181b;
+    color: #71717a;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 1.1rem 2rem;
+    margin-top: 4rem;
+    width: 100%;
+    box-sizing: border-box;
+}

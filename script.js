@@ -383,6 +383,23 @@ createApp({
             }, 50);
         };
 
+        const skipToVisualizer = () => {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            hasStarted.value    = true;
+            isPlaying.value     = true;
+            activeSection.value = 3;
+            computePVBuffer(getPVSpeed());
+            setTimeout(() => {
+                [waveCanvas1.value, waveCanvas2.value, waveCanvas3.value].forEach(c => {
+                    if (c) { c.width = c.offsetWidth; c.height = c.offsetHeight; }
+                });
+                document.documentElement.classList.remove('no-scroll');
+                document.body.classList.remove('no-scroll');
+                document.getElementById('section-3').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 50);
+        };
+
         const toggleSound = () => {
             if (!hasStarted.value) return;
             initAudio();
@@ -611,7 +628,7 @@ createApp({
         onUnmounted(() => { if (animId) cancelAnimationFrame(animId); });
 
         return {
-            hasStarted, startExperience, isPlaying, toggleSound,
+            hasStarted, startExperience, skipToVisualizer, isPlaying, toggleSound,
             activeHarmonics, toggleHarmonic, setCombo,
             speedSlider, displaySpeed, handleSliderInput, handleSliderChange,
             isMelodyMode, setMelodyMode,
