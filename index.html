@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Shape of Sound</title>
+    <title>Phase Vocoding</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -12,8 +12,8 @@
 
     <!-- ==================== INTRO ==================== -->
     <div class="section intro-section">
-        <h1>The Shape of Sound</h1>
-        <p>Every sound you have ever heard is just a bunch of simple waves stacked on top of each other. Let's build one.</p>
+        <h1>How Sound Stretches</h1>
+        <p>Every sound you have ever heard is just a bunch of simple waves stacked on top of each other. Let's build one. (Audio may be loud)</p>
         <button v-if="!hasStarted" class="start-btn" @click="startExperience">Start Experience</button>
         <p v-else class="scroll-prompt fade-in">↓ Scroll down</p>
     </div>
@@ -33,15 +33,15 @@
                     </button>
                 </div>
                 <div class="combinations-guide">
-                    <p class="instruction">Or try these classic wave recipes:</p>
+                    <p class="instruction">Or try these classic waves:</p>
                     <div class="combo-cards">
                         <div class="combo-card" @click="setCombo([true,true,true,true,true,true,true,true,true])">
                             <h4>Sawtooth Wave</h4>
-                            <p>All 9 harmonics. Sounds buzzy and bright.</p>
+                            <p>All 9 harmonics.</p>
                         </div>
                         <div class="combo-card" @click="setCombo([true,false,true,false,true,false,true,false,true])">
                             <h4>Square Wave</h4>
-                            <p>Odd harmonics only. Sounds hollow and woody.</p>
+                            <p>Odd harmonics only.</p>
                         </div>
                     </div>
                 </div>
@@ -51,8 +51,8 @@
 
     <!-- ==================== SPEED LIMIT INFO ==================== -->
     <div class="section info-panel">
-        <h2>The Speed Limit of Sound</h2>
-        <p>Since all audio recordings are just complex stacks of sine waves, what happens if we want to play a melody 2x faster?</p>
+        <h2>How do we make this faster?</h2>
+        <p>Since all audio recordings are just complex stacks of sine (and cosine) waves, what happens if we want to play a melody 2x faster?</p>
         <p>The simplest way a computer can do this is by taking the wave and literally squishing it in half to play it in half the time.</p>
         <div class="waveform-illustration">
             <div class="wave-track">
@@ -101,6 +101,7 @@
                 </div>
             </div>
         </div>
+        <p>The high-pitched voices from Alvin and the Chipmunks were created by recording lines at a slower speed, and then playing them back at normal speed.</p>
     </div>
 
 
@@ -108,7 +109,7 @@
     <!-- ==================== PHASE VOCODER EXPLANATION ==================== -->
     <div class="section info-panel pv-info-panel">
         <h2>The Fix: Phase Vocoding</h2>
-        <p>You cannot naïvely change playback speed without changing pitch. The Phase Vocoder solves this — but it took a chain of increasingly clever ideas to get there, each one fixing the flaw left by the last.</p>
+        <p>You cannot naïvely change playback speed without changing pitch. The Phase Vocoder solves this:</p>
 
 
             <!-- ==================== SKIP PROMPT ==================== -->
@@ -276,7 +277,8 @@
                 <div class="pv-step-text">
                     <h4>③ Overlapping Frames + The Hann Window</h4>
                     <p>The real insight: forget gaps entirely. Take frames that overlap by 75%, and when placing them at the output, simply add them together. Every point in the output is covered by multiple frames — no gaps, no need to interpolate anything from scratch.</p>
-                    <p>But overlapping raw frames creates amplitude bumps wherever frames pile up. The fix: multiply every frame by a <strong>Hann window</strong> — a bell-shaped function that tapers smoothly to exactly zero at both ends. With 75% overlap, the sum of squared window values, ∑w², is nearly constant everywhere. This means we can divide it out (the WOLA normalisation) and recover a perfectly flat amplitude — no bumps, no pops, no injected harmonics. We now have a robust way to place audio frames at any output position.</p>
+                    <p>But overlapping raw frames creates amplitude bumps wherever frames pile up. The fix: multiply every frame by a <strong>Hann window</strong> — a bell-shaped function that tapers smoothly to exactly zero at both ends. With 75% overlap, the sum of squared window values, ∑w², is nearly constant everywhere. This means we can divide it out and recover a perfectly flat amplitude — no bumps, no pops, no injected harmonics. We now have a robust way to place audio frames at any output position.</p>
+                    <p>The ratio of the overlap (also know as the <strong>Analysis Hop</strong>) to the window length affects the reconstructed signal greatly. A greater overlap will result in more frames, allowing the signal to be modified and reproduced with more granularity. As expected, this comes with the cost of computation.</p>
                 </div>
             </div>
 
@@ -338,8 +340,8 @@
                 </div>
                 <div class="pv-step-text">
                     <h4>④ FFT — Extracting Amplitude and Phase</h4>
-                    <p>Now each overlapping frame is processed by a <strong>Fast Fourier Transform</strong>, which decomposes the frame into its constituent sine waves. For a frame of N samples, the FFT returns N complex numbers — one per frequency bin. Each complex number encodes exactly two things: its <strong>magnitude</strong> (the height of the bar: how loud that frequency is) and its <strong>phase</strong> (the clock angle: exactly where in its cycle that frequency's sine wave is sitting right now).</p>
-                    <p>This separation is the key. Every component of the sound — every partial — now has an exact, measurable "clock position" in its cycle. We have isolated frequency from time. The question becomes: when we place this frame at a <em>different</em> output position, what phase should each frequency have?</p>
+                    <p>Now each overlapping frame is processed by a <strong>Fast Fourier Transform</strong>, which decomposes the frame into its constituent waves. For a frame of N samples, the FFT returns N complex numbers — one per frequency bin. Each complex number encodes exactly two things: its <strong>magnitude</strong> (the height of the bar: how loud that frequency is) and its <strong>phase</strong> (the clock angle: exactly where in its cycle that frequency's sine wave is sitting right now).</p>
+                    <p>This separation is the key. Every component of the sound — every partial — now has an exact, measurable "clock position" in its cycle. We have isolated frequency from time. At this point, we can now start to shift our frames around.</p>
                 </div>
             </div>
 
@@ -414,8 +416,9 @@
                 </div>
                 <div class="pv-step-text">
                     <h4>⑤ The Phase Difference — Measuring True Frequency</h4>
-                    <p>Here is the heart of the algorithm. A frequency bin has a <em>nominal</em> centre frequency, which predicts exactly how much the phase should advance between two consecutive frames: the <strong>expected advance</strong> = ω_bin × Ha. But the actual measured phase advance almost always differs slightly, because real sound partials rarely sit perfectly on a bin boundary.</p>
-                    <p>The tiny gap between the expected and actual phase advance — <em>Δerr</em> — is not noise: it is a precise measurement of the bin's <strong>true instantaneous frequency</strong>: <code>ω_true = ω_bin + Δerr / Ha</code>. Knowing ω_true, we advance the synthesis phase by exactly <code>ω_true × Hs</code> for each output frame. No matter how far apart we space the output frames (fast or slow), every frequency partial stays phase-coherent — its pitch is perfectly preserved.</p>
+                    <p>Each frequency has a <em>nominal</em> centre frequency, which predicts exactly how much the phase should advance between two consecutive frames, which is the analysis hop multiplied by the frequency. </p>
+                    <p>When we look at the next frame, we see that the actual phase change is different from the predicted phase change. If the phase has moved more than expected, then we know our frequency is higher than expected. Conversely, if the phase is behind, then our frequency is lower than expected.</p>
+                    <p>The tiny gap between the expected and actual phase advance allows us to determine the true instantaneous frequency at each time. We now create new frames, using the true instantaneous frequency multiplied by the <strong>Synthesis Hop</strong> to lengthen or shorten parts of sound while keeping the the pitch the same. If the Synthesis Hop is larger than the Analysis Hop, then the frames would be further apart meaning the sound is slowed down, and vice versa.</p>
                 </div>
             </div>
 
@@ -492,8 +495,8 @@
                 </div>
                 <div class="pv-step-text">
                     <h4>⑥ IFFT, Re-window, and Overlap-Add</h4>
-                    <p>With phases corrected and magnitudes preserved, an <strong>Inverse FFT</strong> converts each frequency-domain frame back to the time domain. The Hann window is applied a second time — this second pass suppresses <em>spectral smearing</em>, the leakage artefacts that arise because our short frame is not truly periodic at its boundaries.</p>
-                    <p>Each output frame is then placed at its new synthesis position, <em>Hs</em> samples from the last. Hs &gt; Ha → frames spaced further apart → slower, longer output. Hs &lt; Ha → frames closer → faster, shorter output. In both cases, because every phase was advanced by ω_true × Hs, all partials arrive at exactly the right phase — the frequencies are identical to the original. This is <em>Weighted Overlap-Add (WOLA)</em>, and it is why the output is smooth and the pitch is preserved.</p>
+                    <p>We now use the created frames to reconstruct the sound. The <strong>Inverse FFT</strong> is used to convert our frames in the frequency domain back into the time domain.</p>
+                    <p>We now place this output along the time axis, with each frame having a distance of the previously used Synthesis Hop. Since the overlapping frames will once again create amplitude bumps, we apply the Hann Window again to smoothen the sound. Adding back the waves together then reconstructs the modified sound!</p>
                 </div>
             </div>
 
@@ -505,7 +508,7 @@
     <!-- ==================== SECTION 3 ==================== -->
     <div class="section" id="section-3">
         <div class="widget-box">
-            <h2>3. Time Without Pitch</h2>
+            <h2>3. Modifying Time without Modifying Pitch</h2>
             <p>Toggle the Phase Vocoder on and off to hear the difference. With it on, pitch stays locked regardless of speed.</p>
             <canvas ref="waveCanvas3" class="visualizer"></canvas>
             <div class="harmonics-container">

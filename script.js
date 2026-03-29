@@ -42,38 +42,51 @@ function pvIFFT(re, im) {
 // stretch < 1 → shorter output → faster playback (tempo up, pitch preserved)
 // stretch > 1 → longer output → slower playback (tempo down, pitch preserved)
 function phaseVocode(inputData, stretch) {
-    const N      = 2048;
-    const Ha     = N >> 2;
-    const Hs     = Math.max(1, Math.round(Ha * stretch));
-    const TWO_PI = 2.0 * Math.PI;
+    const N = 2048;
+    const baseHop = N >> 2;
+    
+    // Dynamic Hop allocation prevents phase breaking
+    let Ha, Hs;
+    if (stretch >= 1.0) {
+        Hs = baseHop;
+        Ha = Math.max(1, Math.round(Hs / stretch));
+    } else {
+        Ha = baseHop;
+        Hs = Math.max(1, Math.round(Ha * stretch));
+    }
 
-    const inputLen  = inputData.length;
-    const numFrames = Math.floor((inputLen - N) / Ha) + 1;
+    const TWO_PI = 2.0 * Math.PI;
+    const inputLen = inputData.length;
+    
+    // Calculate precise output length to maintain perfect loop timing
+    const outputLen = Math.round(inputLen * (Hs / Ha));
+    const numFrames = Math.ceil(inputLen / Ha);
+
     if (numFrames < 1) return new Float32Array(inputLen);
 
-    const outputLen = (numFrames - 1) * Hs + N;
-    const output    = new Float64Array(outputLen);
-    const norm      = new Float64Array(outputLen);
+    const output = new Float64Array(outputLen);
+    const norm   = new Float64Array(outputLen);
 
     const win = new Float64Array(N);
     for (let i = 0; i < N; i++) win[i] = 0.5 * (1.0 - Math.cos(TWO_PI * i / N));
 
-    const re                = new Float64Array(N);
-    const im                = new Float64Array(N);
-    const outRe             = new Float64Array(N);
-    const outIm             = new Float64Array(N);
-    const mag               = new Float64Array(N);
-    const curPhi            = new Float64Array(N);
-    const prevAnalysisPhi   = new Float64Array(N);
-    const synthPhi          = new Float64Array(N);
+    const re = new Float64Array(N);
+    const im = new Float64Array(N);
+    const outRe = new Float64Array(N);
+    const outIm = new Float64Array(N);
+    const mag = new Float64Array(N);
+    const curPhi = new Float64Array(N);
+    const prevAnalysisPhi = new Float64Array(N);
+    const synthPhi = new Float64Array(N);
 
     for (let frame = 0; frame < numFrames; frame++) {
         const inPos  = frame * Ha;
         const outPos = frame * Hs;
 
+        // 1. CIRCULAR INPUT: Wrap the reading index around the buffer
         for (let i = 0; i < N; i++) {
-            const s = inPos + i;
-            re[i] = (s < inputLen ? inputData[s] : 0.0) * win[i];
+            const s = (inPos + i) % inputLen; 
+            re[i] = inputData[s] * win[i];
             im[i] = 0.0;
         }
 
@@ -99,16 +112,18 @@ function phaseVocode(inputData, stretch) {
 
         pvIFFT(outRe, outIm);
 
+        // 2. CIRCULAR OVERLAP-ADD: Wrap the output writing index
         for (let i = 0; i < N; i++) {
-            const oIdx = outPos + i;
-            if (oIdx < outputLen) {
-                output[oIdx] += outRe[i] * win[i];
-                norm[oIdx]   += win[i]   * win[i];
-            }
+            const oIdx = (outPos + i) % outputLen; 
+            output[oIdx] += outRe[i] * win[i];
+            norm[oIdx]   += win[i] * win[i];
         }
     }
 
     const result = new Float32Array(outputLen);
+    
+    // 3. Local Normalization works perfectly now because the norm array
+    // is completely flat from start to finish due to the circular wrap!
     for (let i = 0; i < outputLen; i++) {
         if (norm[i] > 1e-6) {
             let v = output[i] / norm[i];
@@ -117,6 +132,7 @@ function phaseVocode(inputData, stretch) {
             result[i] = v;
         }
     }
+    
     return result;
 }
 
@@ -238,7 +254,7 @@ createApp({
             pvSource.buffer = buf;
             pvSource.loop   = true;
             const g = audioCtx.createGain();
-            g.gain.value = 0.9;
+            g.gain.value = 5;
             pvSource.connect(g);
             g.connect(masterGain);
             pvSource.start();
