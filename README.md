@@ -17,4 +17,28 @@ document.addEventListener('keydown', (e) => {
   }
 });
 ```
-Paste this into the debug console and press 1-9 on the keyboard as desired :)
+Paste this into the debug console and press 1-9 on the keyboard as desired 
+
+```
+document.addEventListener('keydown', (e) => {
+  const slider = document.querySelector('.speed-slider');
+  const map = {
+    'i': -0.58,
+    'o': -0.55,
+    'p': -0.52,
+    'z': -0.50,
+    'x': -0.46,
+    'c': -0.43,
+    'v': -0.40,
+    'b': -0.37,
+    'n': -0.33,
+    'm': -0.30,
+  };
+  if (map[e.key] !== undefined) {
+    slider.value = map[e.key];
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+    slider.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+});
+```
+Pressing i, o, p and the entire bottom row allows one to play different notes too.
